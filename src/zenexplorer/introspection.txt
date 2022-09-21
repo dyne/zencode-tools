@@ -1,0 +1,389 @@
+
+"array"
+the '' is found in ''
+the '' is found in '' at least '' times
+the '' is not found in ''
+create the aggregation of array ''
+create the array by splitting '' at ''
+create the array of objects named by '' found in ''
+create the average of elements in array ''
+create the copy of element '' in array ''
+create the flat array of contents in ''
+create the flat array of keys in ''
+create the length of ''
+create the new array
+create the size of ''
+create the standard deviation of elements in array ''
+create the sum value of elements in array ''
+create the variance of elements in array ''
+insert '' in ''
+insert false in ''
+insert string '' in ''
+insert true in ''
+remove the '' from ''
+
+"bitcoin"
+create the bitcoin address
+create the bitcoin key
+create the bitcoin key with secret ''
+create the bitcoin key with secret key ''
+create the bitcoin public key
+create the bitcoin raw transaction
+create the bitcoin transaction
+create the bitcoin transaction to ''
+create the testnet address
+create the testnet key
+create the testnet key with secret ''
+create the testnet key with secret key ''
+create the testnet public key
+create the testnet raw transaction
+create the testnet transaction
+create the testnet transaction to ''
+sign the bitcoin transaction
+sign the testnet transaction
+
+"credential"
+verify the credential proof
+aggregate the issuer public keys
+create the credential key
+create the credential key with secret ''
+create the credential key with secret key ''
+create the credential proof
+create the credential request
+create the credential signature
+create the credentials
+create the issuer key
+create the issuer public key
+
+"data"
+
+"debug"
+backtrace
+codec
+config
+debug
+schema
+trace
+backtrace
+codec
+config
+debug
+schema
+trace
+backtrace
+codec
+config
+debug
+schema
+trace
+
+"dictionary"
+create the array of elements named '' for dictionaries in ''
+create the copy of '' from ''
+create the copy of '' from dictionary ''
+create the copy of '' in ''
+create the copy of '' in '' in ''
+create the copy of object named by '' from dictionary ''
+create the new dictionary
+create the new dictionary named ''
+create the pruned dictionary of ''
+create the sum value '' for dictionaries in ''
+create the sum value '' for dictionaries in '' where '' > ''
+filter '' fields from ''
+find the '' for dictionaries in '' where '' = ''
+find the max value '' for dictionaries in ''
+find the min value '' for dictionaries in ''
+for each dictionary in '' append '' to ''
+move '' from '' to ''
+move '' in ''
+pickup from path ''
+take '' from path ''
+
+"dp3t"
+create the ephemeral ids for today
+create the proximity tracing of infected ids
+renew the secret day key to a new day
+
+"ecdh"
+verify the '' has a ecdh signature in '' by ''
+verify the '' has a signature in '' by ''
+create the ecdh key
+create the ecdh key with secret ''
+create the ecdh key with secret key ''
+create the ecdh public key
+create the ecdh signature of ''
+create the signature of ''
+decrypt the text of '' from ''
+decrypt the text of '' with ''
+encrypt the secret message '' with ''
+encrypt the secret message of '' for ''
+
+"eddsa"
+verify the '' has a eddsa signature in '' by ''
+create the eddsa key
+create the eddsa key with secret ''
+create the eddsa key with secret key ''
+create the eddsa public key
+create the eddsa public key with secret key ''
+create the eddsa signature of ''
+
+"ethereum"
+create the '' decoded from ethereum bytes ''
+create the ethereum address
+create the ethereum key
+create the ethereum key with secret ''
+create the ethereum key with secret key ''
+create the ethereum transaction of '' to ''
+create the ethereum transaction to ''
+create the signed ethereum transaction
+create the signed ethereum transaction for chain ''
+create the string from the ethereum bytes named ''
+use the ethereum transaction to approve the erc721 '' transfer from ''
+use the ethereum transaction to create the erc721 of object ''
+use the ethereum transaction to create the erc721 of uri ''
+use the ethereum transaction to store ''
+use the ethereum transaction to transfer '' erc20 tokens to ''
+use the ethereum transaction to transfer '' erc20 tokens to '' with details ''
+use the ethereum transaction to transfer the erc721 '' from '' to ''
+use the ethereum transaction to transfer the erc721 '' in the contract '' to '' in planetmint
+verify the signed ethereum transaction from ''
+
+"given"
+a ''
+a '' from ''
+a '' in ''
+a '' is valid
+a '' named ''
+a '' named '' in ''
+a '' named by ''
+a '' named by '' in ''
+a '' public key from ''
+am ''
+my ''
+my '' is valid
+my '' named ''
+my '' named by ''
+my name is in a '' named ''
+my name is in a '' named '' in ''
+nothing
+
+"hash"
+create the HMAC of '' with key ''
+create the hash of ''
+create the hash of '' using ''
+create the hash to point '' of each object in ''
+create the hashes of each object in ''
+create the key derivation of ''
+create the key derivation of '' with '' rounds
+create the key derivation of '' with '' rounds with password ''
+create the key derivation of '' with password ''
+create the key derivations of each object in ''
+
+"http"
+append '' as http request to ''
+create the url from ''
+
+"keyring"
+create the keyring
+
+"pack"
+create the '' decoded from mpack ''
+create the '' decoded from zpack ''
+create the mpack of ''
+create the zpack of ''
+
+"petition"
+the petition signature is just one more
+the petition signature is not a duplicate
+verify the signature proof is correct
+add the signature to the petition
+count the petition results
+create a petition tally
+create the petition ''
+create the petition signature ''
+verify the new petition to be empty
+
+"qp"
+verify the '' has a dilithium signature in '' by ''
+create the dilithium key
+create the dilithium public key
+create the dilithium public key with secret key ''
+create the dilithium signature of ''
+create the kyber kem for ''
+create the kyber key
+create the kyber public key
+create the kyber public key with secret key ''
+create the kyber secret from ''
+create the ntrup kem for ''
+create the ntrup key
+create the ntrup public key
+create the ntrup public key with secret key ''
+create the ntrup secret from ''
+
+"random"
+create the array of '' random numbers
+create the array of '' random numbers modulo ''
+create the array of '' random objects
+create the array of '' random objects of '' bits
+create the array of '' random objects of '' bytes
+create the random ''
+create the random dictionary with '' random objects from ''
+create the random object of '' bits
+create the random object of '' bytes
+pick the random object in ''
+randomize the '' array
+
+"reflow"
+check the reflow signature fingerprint is new
+verify the credential proof
+verify the material passport of ''
+verify the material passport of '' is valid
+verify the reflow seal is valid
+verify the reflow signature credential
+add the reflow fingerprint to the reflow seal
+add the reflow signature to the reflow seal
+aggregate the issuer public keys
+aggregate the reflow public key from array ''
+aggregate the reflow seal array in ''
+create the credential key
+create the credential key with secret ''
+create the credential key with secret key ''
+create the credential proof
+create the credential request
+create the credential signature
+create the credentials
+create the issuer key
+create the issuer public key
+create the material passport of ''
+create the reflow identity of ''
+create the reflow identity of objects in ''
+create the reflow key
+create the reflow key with secret ''
+create the reflow key with secret key ''
+create the reflow public key
+create the reflow seal
+create the reflow seal with identity ''
+create the reflow signature
+prepare credentials for verification
+
+"schnorr"
+verify the '' has a schnorr signature in '' by ''
+create the schnorr key
+create the schnorr key with secret ''
+create the schnorr key with secret key ''
+create the schnorr public key
+create the schnorr public key with secret key ''
+create the schnorr signature of ''
+
+"secshare"
+compose the secret using ''
+create the secret shares of '' with '' quorum ''
+
+"then"
+nothing
+print ''
+print '' as ''
+print '' as '' in ''
+print '' from ''
+print '' from '' as ''
+print '' from '' as '' in ''
+print data
+print data as ''
+print data from ''
+print data from '' as ''
+print keyring
+print my ''
+print my '' as ''
+print my '' from ''
+print my '' from '' as ''
+print my data
+print my data as ''
+print my data from ''
+print my data from '' as ''
+print my keyring
+print object named by ''
+print string ''
+
+"verify"
+number '' is less or equal than ''
+number '' is less than ''
+number '' is more or equal than ''
+number '' is more than ''
+the elements in '' are equal
+the elements in '' are not equal
+verify '' contains a list of emails
+verify '' is a email
+verify '' is equal to ''
+verify '' is equal to '' in ''
+verify '' is not equal to ''
+verify '' is not equal to '' in ''
+
+"w3c"
+verify the did document named ''
+verify the jws signature of ''
+verify the verifiable credential named ''
+create the jws signature of ''
+create the serviceEndpoint
+create the verificationMethod
+get the verification method in ''
+set the verification method in '' to ''
+sign the verifiable credential named ''
+
+"when"
+'' is found
+'' is found in ''
+'' is not found
+'' is not found in ''
+append '' to ''
+compact ascii strings in ''
+copy '' to ''
+copy contents of '' in ''
+copy contents of '' named '' in ''
+copy the '' in '' to ''
+copy the '' to ''
+create the ''
+create the '' cast of strings in ''
+create the '' named ''
+create the count of char '' found in ''
+create the json of ''
+create the number from ''
+create the result of ''
+create the result of '' % ''
+create the result of '' * ''
+create the result of '' * '' in ''
+create the result of '' + ''
+create the result of '' - ''
+create the result of '' / ''
+create the result of '' / '' in ''
+create the result of '' in '' % ''
+create the result of '' in '' % '' in ''
+create the result of '' in '' * ''
+create the result of '' in '' * '' in ''
+create the result of '' in '' + ''
+create the result of '' in '' + '' in ''
+create the result of '' in '' - ''
+create the result of '' in '' - '' in ''
+create the result of '' in '' / ''
+create the result of '' in '' / '' in ''
+create the result of '' inverted sign
+delete ''
+delete the ''
+done
+remove ''
+remove all occurrences of character '' in ''
+remove newlines in ''
+remove spaces in ''
+remove the ''
+remove zero values in ''
+rename '' to ''
+rename '' to named by ''
+rename the '' to ''
+rename the object named by '' to ''
+rename the object named by '' to named by ''
+seed the random with ''
+set '' to '' as ''
+set '' to '' base ''
+split the leftmost '' bytes of ''
+split the rightmost '' bytes of ''
+write number '' in ''
+write string '' in ''

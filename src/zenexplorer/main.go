@@ -102,7 +102,7 @@ func newModel() model {
 	)
 
 	// Make initial list of items
-	const numItems = 10
+	var numItems = itemGenerator.count()
 	items := make([]list.Item, numItems)
 	for i := 0; i < numItems; i++ {
 		v, finished := itemGenerator.next()
@@ -120,7 +120,6 @@ func newModel() model {
 	groceryList.AdditionalFullHelpKeys = func() []key.Binding {
 		return []key.Binding{
 			listKeys.toggleSpinner,
-			listKeys.insertItem,
 			listKeys.toggleTitleBar,
 			listKeys.toggleStatusBar,
 			listKeys.togglePagination,

@@ -105,8 +105,8 @@ func newModel() model {
 				key.WithHelp("ctrl <-", "focus left"),
 			),
 			exec: key.NewBinding(
-				key.WithKeys("ctrl+enter"),
-				key.WithHelp("ctrl enter", "EXEC"),
+				key.WithKeys("ctrl+down"),
+				key.WithHelp("ctrl down", "EXEC"),
 			),
 			// add: key.NewBinding(
 			// 	key.WithKeys("ctrl+n"),
@@ -164,13 +164,31 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			// TODO: not working
 		case key.Matches(msg, m.keymap.exec):
-			m.inputs[1].SetValue( m.inputs[0].Value() )
-			cmd := tea.ExecProcess( exec.Command("zenroom", m.inputs[0].Value()) , 
-				func(err error) tea.Msg {
-					m.inputs[2].SetValue(err.Error())
-					return err.Error()
-				})
-			cmds = append(cmds, cmd)
+			//m.inputs[1].SetValue( m.inputs[0].Value() )
+			//cmd := tea.ExecProcess( exec.Command("zenroom", m.inputs[0].Value()) ,
+			//	func(err error) tea.Msg {
+			//		m.inputs[2].SetValue(err.Error())
+			//		return err.Error()
+			//	})
+			//cmds = append(cmds, cmd)
+			dataFile, _ := os.Create("tempData")
+			defer dataFile.Close()
+			dataFile.WriteString(m.inputs[1].Value())
+			dataFile.Sync()
+
+			scriptFile, _ := os.Create("tempScript")
+			defer scriptFile.Close()
+			scriptFile.WriteString(m.inputs[0].Value())
+			scriptFile.Sync()
+			cmd := exec.Command("zenroom","-z",scriptFile.Name(),"-a",dataFile.Name())
+			out, err := cmd.CombinedOutput()
+			if err != nil {
+				m.inputs[2].SetValue( string(out) + err.Error() )
+			} else {
+				m.inputs[2].SetValue( string(out) )
+			}
+			os.Remove(dataFile.Name())
+			os.Remove(scriptFile.Name())
 		// case key.Matches(msg, m.keymap.add):
 		// 	m.inputs = append(m.inputs, newTextarea())
 		// case key.Matches(msg, m.keymap.remove):

@@ -1,13 +1,13 @@
 all: zendebug zenexplorer
 
-zenexplorer_sources := src/zenexplorer/main.go src/zenexplorer/zencodeStatements.go src/zenexplorer/delegate.go
-zendebug_sources := src/zendebug/main.go
+zenexplorer_sources := main.go zencodeStatements.go delegate.go
+zendebug_sources := main.go
 
-zenexplorer: ${zenexplorer_sources}
-	go build -o zenexplorer ${zenexplorer_sources}
+zenexplorer: $(wildcard src/zenexplorer/*.go)
+	go build -o zenexplorer $(foreach source, ${zenexplorer_sources}, src/zenexplorer/${source})
 
-zendebug: ${zendebug_sources}
-	go build -o zendebug ${zendebug_sources}
+zendebug: $(wildcard src/zendebug/*.go)
+	go build -o zendebug $(foreach source, ${zendebug_sources}, src/zendebug/${source})
 
 clean:
 	rm -f zendebug zenexplorer

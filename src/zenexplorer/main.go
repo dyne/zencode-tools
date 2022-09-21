@@ -1,7 +1,7 @@
 /* Software Tools to work with Zenroom (https://dev.zenroom.org)
  *
  * Copyright (C) 2022 Dyne.org foundation
- * Originally written as example code in Bubblewrap 
+ * Originally written as example code in Bubblewrap
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -46,13 +46,13 @@ var (
 )
 
 type item struct {
-	title       string
-	description string
+	statement       string
+	scenario string
 }
 
-func (i item) Title() string       { return i.title }
-func (i item) Description() string { return i.description }
-func (i item) FilterValue() string { return i.title }
+func (i item) Title() string       { return i.statement }
+func (i item) Description() string { return i.scenario }
+func (i item) FilterValue() string { return i.statement }
 
 type listKeyMap struct {
 	toggleSpinner    key.Binding
@@ -60,15 +60,10 @@ type listKeyMap struct {
 	toggleStatusBar  key.Binding
 	togglePagination key.Binding
 	toggleHelpMenu   key.Binding
-	insertItem       key.Binding
 }
 
 func newListKeyMap() *listKeyMap {
 	return &listKeyMap{
-		insertItem: key.NewBinding(
-			key.WithKeys("a"),
-			key.WithHelp("a", "add item"),
-		),
 		toggleSpinner: key.NewBinding(
 			key.WithKeys("s"),
 			key.WithHelp("s", "toggle spinner"),
@@ -94,29 +89,33 @@ func newListKeyMap() *listKeyMap {
 
 type model struct {
 	list          list.Model
-	itemGenerator *randomItemGenerator
+	itemGenerator *zencodeItemGenerator
 	keys          *listKeyMap
 	delegateKeys  *delegateKeyMap
 }
 
 func newModel() model {
 	var (
-		itemGenerator randomItemGenerator
+		itemGenerator zencodeItemGenerator
 		delegateKeys  = newDelegateKeyMap()
 		listKeys      = newListKeyMap()
 	)
 
 	// Make initial list of items
-	const numItems = 24
+	const numItems = 10
 	items := make([]list.Item, numItems)
 	for i := 0; i < numItems; i++ {
-		items[i] = itemGenerator.next()
+		v, finished := itemGenerator.next()
+		if finished {
+			break;
+		}
+		items[i] = v;
 	}
 
 	// Setup list
 	delegate := newItemDelegate(delegateKeys)
 	groceryList := list.New(items, delegate, 0, 0)
-	groceryList.Title = "Groceries"
+	groceryList.Title = "Statements"
 	groceryList.Styles.Title = titleStyle
 	groceryList.AdditionalFullHelpKeys = func() []key.Binding {
 		return []key.Binding{
@@ -178,13 +177,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keys.toggleHelpMenu):
 			m.list.SetShowHelp(!m.list.ShowHelp())
 			return m, nil
-
-		case key.Matches(msg, m.keys.insertItem):
-			m.delegateKeys.remove.SetEnabled(true)
-			newItem := m.itemGenerator.next()
-			insCmd := m.list.InsertItem(0, newItem)
-			statusCmd := m.list.NewStatusMessage(statusMessageStyle("Added " + newItem.Title()))
-			return m, tea.Batch(insCmd, statusCmd)
 		}
 	}
 

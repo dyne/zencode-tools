@@ -1,6 +1,6 @@
 all: zendebug zenexplorer
 
-zenexplorer_sources := src/zenexplorer/main.go src/zenexplorer/randomitems.go src/zenexplorer/delegate.go
+zenexplorer_sources := src/zenexplorer/main.go src/zenexplorer/zencodeStatements.go src/zenexplorer/delegate.go
 zendebug_sources := src/zendebug/main.go
 
 zenexplorer: ${zenexplorer_sources}

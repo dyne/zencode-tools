@@ -8,19 +8,6 @@ end
 local given_stms = only_statements(ZEN.given_steps)
 local then_stms = only_statements(ZEN.then_steps)
 
-local function default_statements(steps)
-  local statements = {}
-  for k, _ in pairs(steps) do
-    statements[k] = true
-  end
-end
-
-local DEFAULT_SCENARIOS = {}
-for scenario in pairs(SCENARIOS) do
-  local _, _, s = string.find(scenario, "zencode_(.*)")
-  table.insert(DEFAULT_SCENARIOS, s)
-end
-
 local SCENARIOS = {
   "array",
   "bitcoin",
@@ -48,21 +35,21 @@ local SCENARIOS = {
   "w3c",
   "when"
 }
-local when_defaults = default_statements(ZEN.when_steps)
-
--- Delete all defaults
-ZEN.when_steps = {}
 
 local when_stms = {}
+when_stms["default"] = only_statements(ZEN.when_steps)
 -- Load one scenario at a time
 for _, scenario in ipairs(SCENARIOS) do
+  ZEN.when_steps = {}
   load_scenario("zencode_" .. scenario)
-  when_stms[scenario] = only_statements(ZEN.when_steps)
+  local statements = only_statements(ZEN.when_steps)
+  if #statements > 0 then
+    when_stms[scenario] = statements
+  end
 end
 
 print(JSON.encode({
   ["given"] = given_stms,
   ["then"] = then_stms,
   ["when"] = when_stms,
-  ["default_scenarios"] = DEFAULT_SCENARIOS,
 }))

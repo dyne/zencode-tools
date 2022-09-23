@@ -12,6 +12,7 @@ require (
 	github.com/mattn/go-isatty v0.0.16
 	github.com/muesli/reflow v0.3.0
 	github.com/muesli/termenv v0.12.1-0.20220615005108-4e9068de9898
+	golang.design/x/clipboard v0.6.2 // indirect
 )
 
 // replace github.com/charmbracelet/bubbletea => ../

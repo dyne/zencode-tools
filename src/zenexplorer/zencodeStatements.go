@@ -21,14 +21,22 @@
 package main
 
 import (
-	"bufio"
-	"strings"
 	_ "embed"
 	"sync"
+	"strings"
+	"encoding/json"
 )
 
-//go:embed introspection.txt
-var introspection string
+type ZenStatements struct {
+	Given []string         `json:"given"`
+	When map[string][]string `json:"when"`
+	Then []string          `json:"then"`
+}
+//go:embed load_statements.lua
+var loadStatementsScript string
+
+//go:embed default_statements.json
+var defaultStatements string
 
 type ZencodeScenario struct {
 	scenario string
@@ -47,27 +55,37 @@ func (r *zencodeItemGenerator) reset() {
 	r.mtx = &sync.Mutex{}
 	r.shuffle = &sync.Once{}
 
-	r.scenarios = []ZencodeScenario{}
-	sc := bufio.NewScanner(strings.NewReader(introspection))
-	scenario := ""
-	statements := []string{}
-	for sc.Scan() {
-		line := sc.Text()
-		if line == "" {
-			if(len(statements) > 0) {
-				r.scenarios = append(r.scenarios, ZencodeScenario {
-					scenario: scenario,
-					statements: statements,
-				})
-				scenario = ""
-				statements = []string{}
-			}
-		} else if scenario == "" {
-			scenario = line
-		} else {
-			statements = append(statements, line)
-		}
+	stdin := strings.NewReader(loadStatementsScript)
+	res, err := ZenroomExec(stdin, ZenInput{})
+	var statementsJson string
+	if err {
+		statementsJson = defaultStatements
+	} else {
+		statementsJson = res.Output
 	}
+
+
+	var zen ZenStatements
+
+	json.Unmarshal([]byte(statementsJson), &zen)
+	r.scenarios = []ZencodeScenario{
+		ZencodeScenario {
+			scenario: "given",
+			statements: zen.Given,
+		},
+	}
+	for k, v := range zen.When {
+		r.scenarios = append(r.scenarios, ZencodeScenario {
+			scenario: k,
+			statements: v,
+		})
+	}
+	r.scenarios = append(r.scenarios,
+		ZencodeScenario {
+			scenario: "then",
+			statements: zen.Then,
+		},
+	)
 
 	r.finished = false
 }
@@ -102,8 +120,13 @@ func (r *zencodeItemGenerator) next() (item, bool) {
 	} else {
 		begin = "When"
 	}
+
+	if scenario == "default" || scenario == "given" || scenario == "then" {
+		scenario = ""
+	}
+	begin = begin + " I "
 	i := item{
-		scenario: r.scenarios[r.scenarioIndex].scenario,
+		scenario: scenario,
 		statement: begin + " " + r.scenarios[r.scenarioIndex].statements[r.statementIndex],
 	}
 	finished := r.finished

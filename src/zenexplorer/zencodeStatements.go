@@ -16,44 +16,36 @@
 * You should have received a copy of the GNU Affero General Public License
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 *
-*/
+ */
 
 package main
 
 import (
 	_ "embed"
-	"sync"
-	"strings"
 	"encoding/json"
+	"strings"
+	"sync"
 )
 
 type ZenStatements struct {
-	Given []string         `json:"given"`
-	When map[string][]string `json:"when"`
-	Then []string          `json:"then"`
+	Given []string            `json:"given"`
+	When  map[string][]string `json:"when"`
+	Then  []string            `json:"then"`
+	mtx   *sync.Mutex
 }
+
 //go:embed load_statements.lua
 var loadStatementsScript string
 
 //go:embed default_statements.json
 var defaultStatements string
 
-type ZencodeScenario struct {
-	scenario string
-	statements []string
-}
-type zencodeItemGenerator struct {
-	finished       bool
-	scenarios      []ZencodeScenario
-	scenarioIndex  int
-	statementIndex int
-	mtx            *sync.Mutex
-	shuffle        *sync.Once
-}
 
-func (r *zencodeItemGenerator) reset() {
-	r.mtx = &sync.Mutex{}
-	r.shuffle = &sync.Once{}
+func (z *ZenStatements) reset() {
+	z.mtx = &sync.Mutex{}
+
+	z.mtx.Lock()
+	defer z.mtx.Unlock()
 
 	stdin := strings.NewReader(loadStatementsScript)
 	res, err := ZenroomExec(stdin, ZenInput{})
@@ -64,82 +56,21 @@ func (r *zencodeItemGenerator) reset() {
 		statementsJson = res.Output
 	}
 
-
-	var zen ZenStatements
-
-	json.Unmarshal([]byte(statementsJson), &zen)
-	r.scenarios = []ZencodeScenario{
-		ZencodeScenario {
-			scenario: "given",
-			statements: zen.Given,
-		},
-	}
-	for k, v := range zen.When {
-		r.scenarios = append(r.scenarios, ZencodeScenario {
-			scenario: k,
-			statements: v,
-		})
-	}
-	r.scenarios = append(r.scenarios,
-		ZencodeScenario {
-			scenario: "then",
-			statements: zen.Then,
-		},
-	)
-
-	r.finished = false
+	json.Unmarshal([]byte(statementsJson), z)
 }
 
-func (r *zencodeItemGenerator) count() int {
-	if r.mtx == nil {
-		r.reset()
+func (z *ZenStatements) count() int {
+	if z.mtx == nil {
+		z.reset()
 	}
 
-	r.mtx.Lock()
-	defer r.mtx.Unlock()
+	z.mtx.Lock()
+	defer z.mtx.Unlock()
 
 	var count int = 0
-	for i := 0; i < len(r.scenarios); i++ {
-		count = count + len(r.scenarios[i].statements)
+	for _, v := range z.When {
+		count = count + len(v)
 	}
-	return count;
+	return count + len(z.Given) + len(z.Then)
 }
 
-func (r *zencodeItemGenerator) next() (item, bool) {
-	if r.mtx == nil {
-		r.reset()
-	}
-
-	r.mtx.Lock()
-	defer r.mtx.Unlock()
-
-	scenario := r.scenarios[r.scenarioIndex].scenario
-	var begin string;
-	if scenario == "given" || scenario == "then" {
-		begin = strings.Title(scenario)
-	} else {
-		begin = "When"
-	}
-
-	if scenario == "default" || scenario == "given" || scenario == "then" {
-		scenario = ""
-	}
-	begin = begin + " I "
-	i := item{
-		scenario: scenario,
-		statement: begin + " " + r.scenarios[r.scenarioIndex].statements[r.statementIndex],
-	}
-	finished := r.finished
-
-	r.statementIndex++
-	if r.statementIndex >= len(r.scenarios[r.scenarioIndex].statements) {
-		r.statementIndex = 0
-		r.scenarioIndex++
-		if r.scenarioIndex >= len(r.scenarios) {
-			r.scenarioIndex = 0;
-			r.finished = true
-		}
-	}
-
-	return i, finished
-}

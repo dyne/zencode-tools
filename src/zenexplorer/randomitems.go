@@ -1,7 +1,7 @@
 /* Software Tools to work with Zenroom (https://dev.zenroom.org)
  *
  * Copyright (C) 2022 Dyne.org foundation
- * Originally written as example code in Bubblewrap 
+ * Originally written as example code in Bubblewrap
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as

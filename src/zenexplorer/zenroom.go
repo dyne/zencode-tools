@@ -7,13 +7,13 @@ import (
 )
 
 type ZenResult struct {
-    Output string;
-    Logs string;
+	Output string
+	Logs   string
 }
 type ZenInput struct {
 	Script string
-	Keys string;
-	Data string;
+	Keys   string
+	Data   string
 }
 
 func ZenroomExec(stdin io.Reader, zenIn ZenInput) (ZenResult, bool) {

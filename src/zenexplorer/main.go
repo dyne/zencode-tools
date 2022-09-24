@@ -30,6 +30,8 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+
+	"sort"
 )
 
 var (
@@ -44,15 +46,6 @@ var (
 				Foreground(lipgloss.AdaptiveColor{Light: "#04B575", Dark: "#04B575"}).
 				Render
 )
-
-type item struct {
-	statement       string
-	scenario string
-}
-
-func (i item) Title() string       { return i.statement }
-func (i item) Description() string { return i.scenario }
-func (i item) FilterValue() string { return i.statement }
 
 type listKeyMap struct {
 	toggleSpinner    key.Binding
@@ -88,36 +81,86 @@ func newListKeyMap() *listKeyMap {
 }
 
 type model struct {
-	list          list.Model
-	itemGenerator *zencodeItemGenerator
-	keys          *listKeyMap
-	delegateKeys  *delegateKeyMap
+	list         list.Model
+	zencodeItems *ZenStatements
+	keys         *listKeyMap
+	delegateKeys *delegateKeyMap
 }
 
+type ZencodeStatement struct {
+	scenario  string
+	statement string
+}
+
+func (i ZencodeStatement) Title()   string { return i.statement }
+func (i ZencodeStatement) Description()    string { return i.scenario }
+func (i ZencodeStatement) FilterValue() string { return i.statement }
+
+
+type ByFilterValue []list.Item
+
+func (a ByFilterValue) Len() int           { return len(a) }
+func (a ByFilterValue) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByFilterValue) Less(i, j int) bool { return a[i].FilterValue() < a[j].FilterValue() }
+
+
+func createKeyValueList(z ZenStatements) []list.Item {
+	if z.mtx == nil {
+		z.reset()
+	}
+
+	var statements []list.Item
+
+	z.mtx.Lock()
+	defer z.mtx.Unlock()
+
+
+	for i := 0; i < len(z.Given); i++ {
+		statements = append(statements, ZencodeStatement {
+			scenario: "",
+			statement: "Given I " + z.Given[i],
+		})
+	}
+	for k, v := range z.When {
+		for i := 0; i < len(v); i++ {
+			var scenario = ""
+			if k != "default" {
+				scenario = k
+			}
+			statements = append(statements, ZencodeStatement {
+				scenario: scenario,
+				statement: "When I " + v[i],
+			})
+		}
+	}
+	for i := 0; i < len(z.Then); i++ {
+		statements = append(statements, ZencodeStatement {
+			scenario: "",
+			statement: "Then I " + z.Then[i],
+		})
+	}
+
+	sort.Sort(ByFilterValue(statements))
+
+
+	return statements
+}
 func newModel() model {
 	var (
-		itemGenerator zencodeItemGenerator
-		delegateKeys  = newDelegateKeyMap()
-		listKeys      = newListKeyMap()
+		zencodeItems ZenStatements
+		delegateKeys = newDelegateKeyMap()
+		listKeys     = newListKeyMap()
 	)
 
 	// Make initial list of items
-	var numItems = itemGenerator.count()
-	items := make([]list.Item, numItems)
-	for i := 0; i < numItems; i++ {
-		v, finished := itemGenerator.next()
-		if finished {
-			break;
-		}
-		items[i] = v;
-	}
+	items := createKeyValueList(zencodeItems)
 
 	// Setup list
 	delegate := newItemDelegate(delegateKeys)
-	groceryList := list.New(items, delegate, 0, 0)
-	groceryList.Title = "Statements"
-	groceryList.Styles.Title = titleStyle
-	groceryList.AdditionalFullHelpKeys = func() []key.Binding {
+	zencodeList := list.New(items, delegate, 0, 0)
+	zencodeList.Title = "Statements"
+	zencodeList.Styles.Title = titleStyle
+	zencodeList.AdditionalFullHelpKeys = func() []key.Binding {
 		return []key.Binding{
 			listKeys.toggleSpinner,
 			listKeys.toggleTitleBar,
@@ -128,10 +171,10 @@ func newModel() model {
 	}
 
 	return model{
-		list:          groceryList,
+		list:          zencodeList,
 		keys:          listKeys,
 		delegateKeys:  delegateKeys,
-		itemGenerator: &itemGenerator,
+		zencodeItems:  &zencodeItems,
 	}
 }
 

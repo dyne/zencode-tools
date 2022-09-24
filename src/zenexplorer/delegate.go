@@ -33,7 +33,7 @@ func newItemDelegate(keys *delegateKeyMap) list.DefaultDelegate {
 	d.UpdateFunc = func(msg tea.Msg, m *list.Model) tea.Cmd {
 		var title string
 
-		if i, ok := m.SelectedItem().(item); ok {
+		if i, ok := m.SelectedItem().(ZencodeStatement); ok {
 			title = i.Title()
 		} else {
 			return nil
@@ -44,7 +44,9 @@ func newItemDelegate(keys *delegateKeyMap) list.DefaultDelegate {
 			switch {
 			case key.Matches(msg, keys.choose):
 				clipboard.Write(clipboard.FmtText, []byte(title))
-				return m.NewStatusMessage(statusMessageStyle("You chose " + title))
+				// return m.NewStatusMessage(statusMessageStyle("You chose " + title))
+				m.Title = title
+				return nil
 
 			case key.Matches(msg, keys.remove):
 				index := m.Index()

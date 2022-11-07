@@ -32,6 +32,8 @@ import (
 	"github.com/charmbracelet/lipgloss"
 
 	"sort"
+	"net"
+	"path/filepath"
 )
 
 var (
@@ -81,10 +83,12 @@ func newListKeyMap() *listKeyMap {
 }
 
 type model struct {
-	list         list.Model
-	zencodeItems *ZenStatements
-	keys         *listKeyMap
-	delegateKeys *delegateKeyMap
+	list           list.Model
+	zencodeItems   *ZenStatements
+	keys           *listKeyMap
+	delegateKeys   *delegateKeyMap
+
+	serverStarted  bool
 }
 
 type ZencodeStatement struct {
@@ -145,18 +149,26 @@ func createKeyValueList(z ZenStatements) []list.Item {
 
 	return statements
 }
-func newModel() model {
+func newModel(sock net.Listener) model {
 	var (
 		zencodeItems ZenStatements
 		delegateKeys = newDelegateKeyMap()
 		listKeys     = newListKeyMap()
+		chanStatements chan string = nil
 	)
+
+	serverStarted := false
+	if sock != nil {
+		serverStarted = true
+		chanStatements = make(chan string)
+		go startServer(sock, chanStatements)
+	}
 
 	// Make initial list of items
 	items := createKeyValueList(zencodeItems)
 
 	// Setup list
-	delegate := newItemDelegate(delegateKeys)
+	delegate := newItemDelegate(delegateKeys, chanStatements)
 	zencodeList := list.New(items, delegate, 0, 0)
 	zencodeList.Title = "Statements"
 	zencodeList.Styles.Title = titleStyle
@@ -171,10 +183,11 @@ func newModel() model {
 	}
 
 	return model{
-		list:          zencodeList,
-		keys:          listKeys,
-		delegateKeys:  delegateKeys,
-		zencodeItems:  &zencodeItems,
+		list:           zencodeList,
+		keys:           listKeys,
+		delegateKeys:   delegateKeys,
+		zencodeItems:   &zencodeItems,
+		serverStarted:  serverStarted,
 	}
 }
 
@@ -235,10 +248,25 @@ func (m model) View() string {
 }
 
 func main() {
+	p, err := filepath.Abs(filepath.Join("/", "tmp", "zencode-tools"))
+	if err != nil {
+		panic(err)
+	}
+	if err := os.MkdirAll(p, 0755); err != nil {
+		panic(err)
+	}
+	socketFile := filepath.Join(p, "explorer.sock")
+	l, err := net.Listen("unix", socketFile)
+	if err != nil {
+		panic(err)
+	}
+
 	rand.Seed(time.Now().UTC().UnixNano())
 
-	if err := tea.NewProgram(newModel()).Start(); err != nil {
+	if err := tea.NewProgram(newModel(l)).Start(); err != nil {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
 	}
+
+	os.Remove(socketFile)
 }

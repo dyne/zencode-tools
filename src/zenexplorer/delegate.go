@@ -27,7 +27,7 @@ import (
 	"golang.design/x/clipboard"
 )
 
-func newItemDelegate(keys *delegateKeyMap) list.DefaultDelegate {
+func newItemDelegate(keys *delegateKeyMap, channel chan string) list.DefaultDelegate {
 	d := list.NewDefaultDelegate()
 
 	d.UpdateFunc = func(msg tea.Msg, m *list.Model) tea.Cmd {
@@ -46,6 +46,9 @@ func newItemDelegate(keys *delegateKeyMap) list.DefaultDelegate {
 				clipboard.Write(clipboard.FmtText, []byte(title))
 				// return m.NewStatusMessage(statusMessageStyle("You chose " + title))
 				m.Title = title
+				if channel != nil {
+					channel <- title
+				}
 				return nil
 
 			case key.Matches(msg, keys.remove):

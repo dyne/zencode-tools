@@ -1,6 +1,6 @@
 all: zendebug zenexplorer
 
-zenexplorer_sources := main.go zencodeStatements.go delegate.go zenroom.go
+zenexplorer_sources := main.go zencodeStatements.go delegate.go zenroom.go server.go
 zendebug_sources := main.go
 
 zenexplorer: $(wildcard src/zenexplorer/*.go)

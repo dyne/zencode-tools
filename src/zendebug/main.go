@@ -31,6 +31,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"net"
+	"time"
 )
 
 const (
@@ -92,23 +93,21 @@ type model struct {
 	focus  int
 }
 
-// TODO: reconnect when connection is lost not implemented
 func stmtClient(m model) {
 	c, err := net.Dial("unix", "/tmp/zencode-tools/explorer.sock")
-	if err != nil {
-		return
-	}
-
-	defer c.Close()
-	buf := make([]byte, 1024)
-	for {
-		n, err := c.Read(buf[:])
-		if err != nil {
-			return
+	if err == nil {
+		defer c.Close()
+		buf := make([]byte, 1024)
+		for {
+			n, err := c.Read(buf[:])
+			if err != nil {
+				break
+			}
+			m.inputs[0].SetCursor(0)
+			m.inputs[0].InsertString(string(buf[0:n]) + "\n")
 		}
-		m.inputs[0].SetCursor(0)
-		m.inputs[0].InsertString(string(buf[0:n]) + "\n")
 	}
+	time.AfterFunc(5*time.Second, func() { stmtClient(m) })
 }
 func newModel() model {
 	m := model{

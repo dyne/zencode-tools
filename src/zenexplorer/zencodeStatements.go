@@ -40,7 +40,6 @@ var loadStatementsScript string
 //go:embed default_statements.json
 var defaultStatements string
 
-
 func (z *ZenStatements) reset() {
 	z.mtx = &sync.Mutex{}
 
@@ -73,4 +72,3 @@ func (z *ZenStatements) count() int {
 	}
 	return count + len(z.Given) + len(z.Then)
 }
-

@@ -1,7 +1,7 @@
 /* Software Tools to work with Zenroom (https://dev.zenroom.org)
  *
  * Copyright (C) 2022 Dyne.org foundation
- * Originally written as example code in Bubblewrap 
+ * Originally written as example code in Bubblewrap
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -62,7 +62,7 @@ var (
 )
 
 type keymap = struct {
-	next, prev, /* add, remove,  */ exec, quit key.Binding
+	next, prev /* add, remove,  */, exec, quit key.Binding
 }
 
 func newTextarea() textarea.Model {
@@ -200,22 +200,22 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			defer scriptFile.Close()
 			scriptFile.WriteString(m.inputs[0].Value())
 			scriptFile.Sync()
-			cmd := exec.Command("zenroom","-z",scriptFile.Name(),"-a",dataFile.Name())
+			cmd := exec.Command("zenroom", "-z", scriptFile.Name(), "-a", dataFile.Name())
 			out, err := cmd.CombinedOutput()
 			if err != nil {
-				m.inputs[2].SetValue( string(out) + err.Error() )
+				m.inputs[2].SetValue(string(out) + err.Error())
 			} else {
-				m.inputs[2].SetValue( string(out) )
+				m.inputs[2].SetValue(string(out))
 			}
 			os.Remove(dataFile.Name())
 			os.Remove(scriptFile.Name())
-		// case key.Matches(msg, m.keymap.add):
-		// 	m.inputs = append(m.inputs, newTextarea())
-		// case key.Matches(msg, m.keymap.remove):
-		// 	m.inputs = m.inputs[:len(m.inputs)-1]
-		// 	if m.focus > len(m.inputs)-1 {
-		// 		m.focus = len(m.inputs) - 1
-		// 	}
+			// case key.Matches(msg, m.keymap.add):
+			// 	m.inputs = append(m.inputs, newTextarea())
+			// case key.Matches(msg, m.keymap.remove):
+			// 	m.inputs = m.inputs[:len(m.inputs)-1]
+			// 	if m.focus > len(m.inputs)-1 {
+			// 		m.focus = len(m.inputs) - 1
+			// 	}
 		}
 	case tea.WindowSizeMsg:
 		m.height = msg.Height

@@ -21,8 +21,8 @@
 package main
 
 import (
-	"net"
 	"io"
+	"net"
 )
 
 func acceptConnection(listener net.Listener, conn *net.Conn) {

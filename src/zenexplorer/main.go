@@ -31,9 +31,9 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
-	"sort"
 	"net"
 	"path/filepath"
+	"sort"
 )
 
 var (
@@ -83,12 +83,12 @@ func newListKeyMap() *listKeyMap {
 }
 
 type model struct {
-	list           list.Model
-	zencodeItems   *ZenStatements
-	keys           *listKeyMap
-	delegateKeys   *delegateKeyMap
+	list         list.Model
+	zencodeItems *ZenStatements
+	keys         *listKeyMap
+	delegateKeys *delegateKeyMap
 
-	serverStarted  bool
+	serverStarted bool
 }
 
 type ZencodeStatement struct {
@@ -96,17 +96,15 @@ type ZencodeStatement struct {
 	statement string
 }
 
-func (i ZencodeStatement) Title()   string { return i.statement }
-func (i ZencodeStatement) Description()    string { return i.scenario }
+func (i ZencodeStatement) Title() string       { return i.statement }
+func (i ZencodeStatement) Description() string { return i.scenario }
 func (i ZencodeStatement) FilterValue() string { return i.statement }
-
 
 type ByFilterValue []list.Item
 
 func (a ByFilterValue) Len() int           { return len(a) }
 func (a ByFilterValue) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a ByFilterValue) Less(i, j int) bool { return a[i].FilterValue() < a[j].FilterValue() }
-
 
 func createKeyValueList(z ZenStatements) []list.Item {
 	if z.mtx == nil {
@@ -118,10 +116,9 @@ func createKeyValueList(z ZenStatements) []list.Item {
 	z.mtx.Lock()
 	defer z.mtx.Unlock()
 
-
 	for i := 0; i < len(z.Given); i++ {
-		statements = append(statements, ZencodeStatement {
-			scenario: "",
+		statements = append(statements, ZencodeStatement{
+			scenario:  "",
 			statement: "Given I " + z.Given[i],
 		})
 	}
@@ -131,29 +128,28 @@ func createKeyValueList(z ZenStatements) []list.Item {
 			if k != "default" {
 				scenario = k
 			}
-			statements = append(statements, ZencodeStatement {
-				scenario: scenario,
+			statements = append(statements, ZencodeStatement{
+				scenario:  scenario,
 				statement: "When I " + v[i],
 			})
 		}
 	}
 	for i := 0; i < len(z.Then); i++ {
-		statements = append(statements, ZencodeStatement {
-			scenario: "",
+		statements = append(statements, ZencodeStatement{
+			scenario:  "",
 			statement: "Then I " + z.Then[i],
 		})
 	}
 
 	sort.Sort(ByFilterValue(statements))
 
-
 	return statements
 }
 func newModel(sock net.Listener) model {
 	var (
-		zencodeItems ZenStatements
-		delegateKeys = newDelegateKeyMap()
-		listKeys     = newListKeyMap()
+		zencodeItems   ZenStatements
+		delegateKeys               = newDelegateKeyMap()
+		listKeys                   = newListKeyMap()
 		chanStatements chan string = nil
 	)
 
@@ -183,11 +179,11 @@ func newModel(sock net.Listener) model {
 	}
 
 	return model{
-		list:           zencodeList,
-		keys:           listKeys,
-		delegateKeys:   delegateKeys,
-		zencodeItems:   &zencodeItems,
-		serverStarted:  serverStarted,
+		list:          zencodeList,
+		keys:          listKeys,
+		delegateKeys:  delegateKeys,
+		zencodeItems:  &zencodeItems,
+		serverStarted: serverStarted,
 	}
 }
 

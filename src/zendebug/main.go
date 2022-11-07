@@ -191,24 +191,31 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			//		return err.Error()
 			//	})
 			//cmds = append(cmds, cmd)
-			dataFile, _ := os.Create("tempData")
-			defer dataFile.Close()
-			dataFile.WriteString(m.inputs[1].Value())
-			dataFile.Sync()
 
 			scriptFile, _ := os.Create("tempScript")
 			defer scriptFile.Close()
+			defer os.Remove(scriptFile.Name())
 			scriptFile.WriteString(m.inputs[0].Value())
 			scriptFile.Sync()
-			cmd := exec.Command("zenroom", "-z", scriptFile.Name(), "-a", dataFile.Name())
+
+			buildCmd := []string{"-z", scriptFile.Name()}
+			data := m.inputs[1].Value()
+			if data != "" {
+				dataFile, _ := os.Create("tempData")
+				defer dataFile.Close()
+				defer os.Remove(dataFile.Name())
+				dataFile.WriteString(data)
+				dataFile.Sync()
+				buildCmd = append(buildCmd, "-a", dataFile.Name())
+			}
+
+			cmd := exec.Command("zenroom", buildCmd...)
 			out, err := cmd.CombinedOutput()
 			if err != nil {
 				m.inputs[2].SetValue(string(out) + err.Error())
 			} else {
 				m.inputs[2].SetValue(string(out))
 			}
-			os.Remove(dataFile.Name())
-			os.Remove(scriptFile.Name())
 			// case key.Matches(msg, m.keymap.add):
 			// 	m.inputs = append(m.inputs, newTextarea())
 			// case key.Matches(msg, m.keymap.remove):

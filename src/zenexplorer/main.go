@@ -36,6 +36,8 @@ import (
 	"sort"
 )
 
+const socketDir = "/tmp/zencode-tools"
+
 var (
 	appStyle = lipgloss.NewStyle().Padding(1, 2)
 
@@ -167,6 +169,9 @@ func newModel(sock net.Listener) model {
 	delegate := newItemDelegate(delegateKeys, chanStatements)
 	zencodeList := list.New(items, delegate, 0, 0)
 	zencodeList.Title = "Statements"
+	if sock == nil {
+		zencodeList.Title = "(no server) " + zencodeList.Title
+	}
 	zencodeList.Styles.Title = titleStyle
 	zencodeList.AdditionalFullHelpKeys = func() []key.Binding {
 		return []key.Binding{
@@ -244,17 +249,13 @@ func (m model) View() string {
 }
 
 func main() {
-	p, err := filepath.Abs(filepath.Join("/", "tmp", "zencode-tools"))
-	if err != nil {
+	if err := os.MkdirAll(socketDir, 0755); err != nil {
 		panic(err)
 	}
-	if err := os.MkdirAll(p, 0755); err != nil {
-		panic(err)
-	}
-	socketFile := filepath.Join(p, "explorer.sock")
+	socketFile := filepath.Join(socketDir, "explorer.sock")
 	l, err := net.Listen("unix", socketFile)
 	if err != nil {
-		panic(err)
+		l = nil
 	}
 
 	rand.Seed(time.Now().UTC().UnixNano())

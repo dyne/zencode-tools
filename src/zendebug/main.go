@@ -30,7 +30,10 @@ import (
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	log "github.com/sirupsen/logrus"
+	"io"
 	"net"
+	"path/filepath"
 	"time"
 )
 
@@ -40,6 +43,8 @@ const (
 	minInputs     = 2
 	helpHeight    = 5
 )
+
+const socketDir = "/tmp/zencode-tools"
 
 var (
 	cursorStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("212"))
@@ -96,16 +101,25 @@ type model struct {
 func stmtClient(m model) {
 	c, err := net.Dial("unix", "/tmp/zencode-tools/explorer.sock")
 	if err == nil {
+		log.Info("Connected to zenexplorer")
 		defer c.Close()
 		buf := make([]byte, 1024)
 		for {
 			n, err := c.Read(buf[:])
 			if err != nil {
+				if err == io.EOF {
+					log.Info("Closed connection to zenexplorer")
+				} else {
+					log.Error("Unknown error while reading from explorer: ", err)
+					c.Close()
+				}
 				break
 			}
 			m.inputs[0].SetCursor(0)
 			m.inputs[0].InsertString(string(buf[0:n]) + "\n")
 		}
+	} else {
+		log.Error("Error while connecting to explorer: ", err)
 	}
 	time.AfterFunc(5*time.Second, func() { stmtClient(m) })
 }
@@ -273,6 +287,18 @@ func (m model) View() string {
 }
 
 func main() {
+	if err := os.MkdirAll(socketDir, 0755); err != nil {
+		panic(err)
+	}
+
+	loggingFile := filepath.Join(socketDir, "zendebug.log")
+	// Set log to file
+	f, err := os.OpenFile(loggingFile, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0666)
+	if err != nil {
+		panic("error opening file.")
+	}
+
+	log.SetOutput(f)
 	if err := tea.NewProgram(newModel(), tea.WithAltScreen()).Start(); err != nil {
 		fmt.Println("Error while running program:", err)
 		os.Exit(1)

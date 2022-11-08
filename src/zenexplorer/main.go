@@ -21,7 +21,6 @@
 package main
 
 import (
-	"fmt"
 	"math/rand"
 	"os"
 	"time"
@@ -34,6 +33,8 @@ import (
 	"net"
 	"path/filepath"
 	"sort"
+
+	log "github.com/sirupsen/logrus"
 )
 
 const socketDir = "/tmp/zencode-tools"
@@ -252,16 +253,27 @@ func main() {
 	if err := os.MkdirAll(socketDir, 0755); err != nil {
 		panic(err)
 	}
+
+	loggingFile := filepath.Join(socketDir, "explorer.log")
+	// Set log to file
+	f, err := os.OpenFile(loggingFile, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0666)
+	if err != nil {
+		panic("error opening file.")
+	}
+
+	log.SetOutput(f)
+
 	socketFile := filepath.Join(socketDir, "explorer.sock")
 	l, err := net.Listen("unix", socketFile)
 	if err != nil {
 		l = nil
+		log.Info("Could not bind socket file")
 	}
 
 	rand.Seed(time.Now().UTC().UnixNano())
 
 	if err := tea.NewProgram(newModel(l)).Start(); err != nil {
-		fmt.Println("Error running program:", err)
+		log.Fatal("Error running program:", err)
 		os.Exit(1)
 	}
 

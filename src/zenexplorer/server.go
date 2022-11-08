@@ -21,6 +21,7 @@
 package main
 
 import (
+	log "github.com/sirupsen/logrus"
 	"io"
 	"net"
 )
@@ -30,17 +31,20 @@ func acceptConnection(listener net.Listener, conn *net.Conn) {
 	for {
 		*conn, err = listener.Accept()
 		if err != nil {
-			panic(err)
+			log.Error("Error while listening for connections: ", err)
+			return
 		}
 		for {
 			buf := make([]byte, 1024)
 			_, err := (*conn).Read(buf[:])
 			if err != nil {
 				if err == io.EOF {
+					log.Info("Closed connection to client")
 					*conn = nil
 					break
 				} else {
-					panic(err)
+					log.Error("Unknown error ", err)
+					return
 				}
 			}
 		}
@@ -55,7 +59,7 @@ func startServer(listener net.Listener, channel chan string) {
 		if conn != nil {
 			_, err := conn.Write([]byte(stmt))
 			if err != nil {
-				panic(err)
+
 			}
 		}
 	}

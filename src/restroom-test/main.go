@@ -1,14 +1,14 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
-	"bytes"
-	"log"
 )
 
 type Args struct {
@@ -18,24 +18,25 @@ type Args struct {
 	data string
 }
 
-
 type ZenroomResult struct {
-	Result        string `json:"result"`
-	Logs     string `json:"logs"`
+	Result string `json:"result"`
+	Logs   string `json:"logs"`
 }
+
 // Warning: names of properties must start with upper caser
 // otherwise JSON Unmarshal doesn't work without errors
 type RestroomError struct {
 	ZenroomError ZenroomResult `json:"zenroom_errors"`
-	Result        string `json:"result"`
-	Exception     string `json:"exception"`
+	Result       string        `json:"result"`
+	Exception    string        `json:"exception"`
 }
 
 type RestroomResult struct {
 	ZenroomResult ZenroomResult `json:"zenroom_errors"`
-	Result        string `json:"result"`
-	Exception     string `json:"exception"`
+	Result        string        `json:"result"`
+	Exception     string        `json:"exception"`
 }
+
 func (args *Args) loadCli() {
 	// flags declaration using flag package
 	flag.StringVar(&args.url, "u", "", "Path to contract.")

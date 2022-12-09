@@ -10,7 +10,7 @@ zenexplorer: $(wildcard src/zenexplorer/*.go)
 zendebug: $(wildcard src/zendebug/*.go)
 	go build -o zendebug $(foreach source, ${zendebug_sources}, src/zendebug/${source})
 
-zendebug: $(wildcard src/restroom-test/*.go)
+restroom-test: $(wildcard src/restroom-test/*.go)
 	go build -o restroom-test $(foreach source, ${restroom_test_sources}, src/restroom-test/${source})
 
 clean:

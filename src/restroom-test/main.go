@@ -12,6 +12,7 @@ import (
 )
 
 type Args struct {
+	scheme string
 	host string
 	port int
 	url  string
@@ -40,6 +41,7 @@ type RestroomResult struct {
 func (args *Args) loadCli() {
 	// flags declaration using flag package
 	flag.StringVar(&args.url, "u", "", "Path to contract.")
+	flag.StringVar(&args.scheme, "s", "http", "Restroom scheme (http/https)")
 	flag.StringVar(&args.host, "h", "127.0.0.1", "Restroom host.")
 	flag.IntVar(&args.port, "p", 5000, "Restroom port.")
 	flag.StringVar(&args.data, "a", "", "Path to data file.")
@@ -48,7 +50,7 @@ func (args *Args) loadCli() {
 }
 
 func (args Args) requestUrl() string {
-	return fmt.Sprintf("http://%s:%d/api/%s", args.host, args.port, args.url)
+	return fmt.Sprintf("%s://%s:%d/api/%s", args.scheme, args.host, args.port, args.url)
 }
 
 // Example usage: ./restroom-test -p 12001 -u sandbox/did-document-create -a data.json

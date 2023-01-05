@@ -24,7 +24,6 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
-	"golang.design/x/clipboard"
 )
 
 func newItemDelegate(keys *delegateKeyMap) list.DefaultDelegate {
@@ -43,7 +42,6 @@ func newItemDelegate(keys *delegateKeyMap) list.DefaultDelegate {
 		case tea.KeyMsg:
 			switch {
 			case key.Matches(msg, keys.choose):
-				clipboard.Write(clipboard.FmtText, []byte(title))
 				// return m.NewStatusMessage(statusMessageStyle("You chose " + title))
 				m.Title = title
 				return nil

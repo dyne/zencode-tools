@@ -89,10 +89,6 @@ func main() {
 	if err != nil {
 		fmt.Printf("Error in the request: %s", err)
 	} else if resp.StatusCode == 500 {
-		// TODO: don't know with it doesn't load data in type RestroomError
-		// err = json.Unmarshal(body, &rr)
-		// res, err := json.Marshal(RestroomError{exception: rr["exception"]})
-		//var rr map[string]string
 		rr := RestroomError{}
 		body, _ := io.ReadAll(resp.Body)
 		err = json.Unmarshal([]byte(body), &rr)

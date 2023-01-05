@@ -1,4 +1,4 @@
-all: zendebug zenexplorer
+all: zendebug zenexplorer restroom-test
 
 zenexplorer_sources := main.go zencodeStatements.go delegate.go zenroom.go
 zendebug_sources := main.go

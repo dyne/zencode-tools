@@ -41,15 +41,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
       - uses: actions/setup-go@v3
-#       - name: Upload release docs artifacts
-#         uses: actions/upload-artifact@v3
-#         with:
-#           name: documentation
-#           path: |
-#             build/release-intro.md
+      - name: Upload release docs artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: documentation
+          path: |
+            release-intro.md
       - name: Install build deps
         run: |
-          sudo apt install make tree
+          sudo apt install make
       - name: Build
         run: make
       - name: Upload artifact linux-amd64
@@ -70,15 +70,13 @@ jobs:
         with:
           path: |
             zenroom-bin
-      - name: show directory structure
-        run: tree -dL 3
       - name: relase all binary artifacts
         uses: softprops/action-gh-release@v1
         with:
           files: |
             zenroom-bin/release*/*
           tag_name: ${{ needs.semantic-release.outputs.version }}
-#           body_path: zenroom-bin/documentation/release-intro.md
+          body_path: zenroom-bin/documentation/release-intro.md
           append_body: true
           draft: false
           prerelease: false

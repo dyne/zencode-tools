@@ -13,10 +13,10 @@ import (
 
 type Args struct {
 	scheme string
-	host string
-	port int
-	url  string
-	data string
+	host   string
+	port   int
+	url    string
+	data   string
 }
 
 type ZenroomResult struct {
@@ -67,8 +67,8 @@ func main() {
 		data, err := os.Open(args.data)
 		keys := make(map[string]interface{})
 		if err != nil {
-			fmt.Printf("Error while opening %s: %s", args.data, err)
-			return
+			log.Printf("Error while opening %s: %s\n", args.data, err.Error())
+			os.Exit(-1)
 		}
 		defer data.Close()
 		dataBytes, _ := io.ReadAll(data)
@@ -76,7 +76,8 @@ func main() {
 		dataMap := make(map[string]interface{})
 		err = json.Unmarshal(dataBytes, &dataMap)
 		if err != nil {
-			fmt.Printf("Could not read json in file: %s\n", err.Error())
+			log.Printf("Could not read json in file: %s\n", err.Error())
+			os.Exit(-1)
 		}
 		datakeys["data"] = dataMap
 		datakeys["keys"] = keys
@@ -87,14 +88,16 @@ func main() {
 			bytes.NewReader(datakeysBytes))
 	}
 	if err != nil {
-		fmt.Printf("Error in the request: %s", err)
-	} else if resp.StatusCode == 500 {
+		log.Printf("Error in the request: %s\n", err)
+		os.Exit(-1)
+	}
+	if resp.StatusCode == 500 {
 		rr := RestroomError{}
 		body, _ := io.ReadAll(resp.Body)
 		err = json.Unmarshal([]byte(body), &rr)
 		if err != nil {
-			fmt.Println("Error:")
-			fmt.Println(err)
+			log.Println(err)
+			os.Exit(-1)
 		}
 		fmt.Println("==== Zenroom result ====")
 		fmt.Println(rr.ZenroomError.Result)
@@ -104,19 +107,21 @@ func main() {
 		fmt.Println(rr.Exception)
 		fmt.Println("==== Restrooom result  ====")
 		fmt.Println(rr.Result)
-	} else if resp.StatusCode == 200 {
-		//var rr map[string]string
-		body, _ := io.ReadAll(resp.Body)
-		fmt.Println(string(body))
-		//_ = json.Unmarshal(body, &rr)
-		/*fmt.Println("Result")
-		fmt.Println(rr["result"])
-
-		fmt.Println("Logs")
-		fmt.Println(rr["result"])*/
-	} else {
-		fmt.Printf("Received status code %d in response", resp.StatusCode)
+		os.Exit(-1)
 	}
+	if resp.StatusCode != 200 {
+		log.Printf("Received status code %d in response\n", resp.StatusCode)
+		os.Exit(-1)
+	}
+	//var rr map[string]string
+	body, _ := io.ReadAll(resp.Body)
+	fmt.Println(string(body))
+	//_ = json.Unmarshal(body, &rr)
+	/*fmt.Println("Result")
+	fmt.Println(rr["result"])
 
-	return
+	fmt.Println("Logs")
+	fmt.Println(rr["result"])*/
+
+	os.Exit(0)
 }

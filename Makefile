@@ -1,3 +1,6 @@
+DESTDIR ?= /
+PREFIX ?= ${DESTDIR}usr/local
+
 all: zendebug zenexplorer restroom-test
 
 zenexplorer_sources := main.go zencodeStatements.go delegate.go zenroom.go
@@ -13,5 +16,8 @@ zendebug: $(wildcard src/zendebug/*.go)
 restroom-test: $(wildcard src/restroom-test/*.go)
 	go build -o restroom-test $(foreach source, ${restroom_test_sources}, src/restroom-test/${source})
 
+install:
+	install zenexplorer zendebug restroom-test ${PREFIX}/bin
+	
 clean:
 	rm -f zendebug zenexplorer restroom-test

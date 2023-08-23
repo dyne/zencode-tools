@@ -50,6 +50,10 @@ func (args *Args) loadCli() {
 }
 
 func (args Args) requestUrl() string {
+	if (args.scheme == "http" && args.port == 80) ||
+		(args.scheme == "https" && args.port == 443) {
+		return fmt.Sprintf("%s://%s/api/%s", args.scheme, args.host, args.url)
+	}
 	return fmt.Sprintf("%s://%s:%d/api/%s", args.scheme, args.host, args.port, args.url)
 }
 
@@ -111,6 +115,7 @@ func main() {
 	}
 	if resp.StatusCode != 200 {
 		log.Printf("Received status code %d in response\n", resp.StatusCode)
+		log.Println(resp)
 		os.Exit(-1)
 	}
 	//var rr map[string]string

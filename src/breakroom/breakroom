@@ -75,6 +75,31 @@ _setjson() {
 	fi
 }
 
+_execute() {
+	command -v zencode-exec
+	if [ $? != 0 ]; then
+		_error "zencode-exec not found in PATH"; return
+	fi
+	# create zencode-exec execution input
+	bexec=breakroom.exec
+	echo "${conf},$1" > $bexec
+	cat "$script" | base64 -w0 >> $bexec
+	echo >> $bexec
+	if [ -r "$keys" ]; then cat "$keys" | base64 -w0 >> $bexec; fi
+	echo >> $bexec
+	if [ -r "$data" ]; then cat "$data" | base64 -w0 >> $bexec; fi
+	echo >> $bexec
+	if [ -r "$extra" ]; then cat "$extra" | base64 -w0 >> $bexec; fi
+	echo >> $bexec
+	echo >> $bexec # context
+	cat $bexec | zencode-exec \
+					 1> breakroom.exec.stdout 2> breakroom.exec.stderr
+	if [ $? = 0 ]; then
+		cat breakroom.exec.stdout | jq .
+		_success "Execution succesful"
+	fi
+}
+
 tcmd=`mktemp`
 while true; do
 	# read command from prompt
@@ -114,8 +139,29 @@ while true; do
 					_error "Extra file not found: $extra"; continue
 				fi
 				cat ${extra} | jq . ;;
+			conf)
+				cat $bconf ;;
 			clear)
-				_setconf "break" "0" ;;
+				_setconf "break" 0 ;;
+			run)
+				_execute ;;
+			trace)
+				if ! [ -r breakroom.exec.stderr ]; then
+					_error "Execution stderr not found, run first"; continue
+				fi
+				awk '/J64 TRACE:/ {print(substr($3,1,length($3)-2))}' \
+					breakroom.exec.stderr | base64 -d | jq .
+				;;
+			heap)
+				if ! [ -r breakroom.exec.stderr ]; then
+					_error "Execution stderr not found, run first"; continue
+				fi
+				awk '/J64 HEAP:/ {print(substr($3,1,length($3)-2))}' \
+					breakroom.exec.stderr | base64 -d | jq .
+				;;
+			codec|schema|given)
+				_execute "scope=given"
+				;;
 		esac
 	else
 		# SET
@@ -140,11 +186,14 @@ while true; do
 					_error "Extra file not found: $bval"; continue
 				fi
 				_setjson "extra" "$bval" ;;
+			conf)
+				_setconf "$bcmd" "$bval" ;;
 			"break")
 				bval=`echo $bline | cut -d' ' -f2`
 				if _isnum $bval; then _setconf "$bcmd" "$bval"
 				else _error "Invalid Break line number: $bval"
 				fi ;;
+
 		esac
 	fi # end GET/SET
 done

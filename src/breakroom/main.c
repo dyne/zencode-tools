@@ -122,7 +122,10 @@ int main(int argc, char **argv) {
 	CMD("extra");
 	CMD("clear");
 	SETINT("break");
-	SETCONF("conf");
+	CMD("conf");
+	CMD("trace");
+	CMD("heap");
+	CMD("codec"); CMD("schema"); CMD("given");
 	fprintf(stdout,"Unknown command: %s\n", line);
 	free(line);
   }

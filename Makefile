@@ -1,7 +1,7 @@
 DESTDIR ?= /
 PREFIX ?= ${DESTDIR}usr/local
 
-all: zendebug zenexplorer restroom-test
+all: zendebug zenexplorer restroom-test breakroom
 
 zenexplorer_sources := main.go zencodeStatements.go delegate.go zenroom.go
 zendebug_sources := main.go
@@ -20,6 +20,7 @@ restroom-test: $(wildcard src/restroom-test/*.go)
 breakroom: $(wildcard src/breakroom/*.c)
 	${CC} -Os -o src/breakroom/breakroom-read \
 	 src/breakroom/main.c src/breakroom/bestline.c
+	chmod +x src/breakroom/breakroom
 	cp src/breakroom/breakroom-read src/breakroom/breakroom .
 
 ## in case we want to include the binary in the shell script
@@ -29,7 +30,8 @@ breakroom: $(wildcard src/breakroom/*.c)
 # cat src/breakroom/breakroom-read.gz.b64
 
 install:
-	install zenexplorer zendebug restroom-test ${PREFIX}/bin
+	-install zenexplorer zendebug restroom-test ${PREFIX}/bin
+	-install breakroom breakroom-read ${PREFIX}/bin
 
 clean:
 	rm -f zendebug zenexplorer restroom-test

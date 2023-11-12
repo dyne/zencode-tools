@@ -3,6 +3,7 @@
 # Breakroom main script
 
 exitcode=0
+
 _success() {
 	echo "[*] " "$1" "$2" "$3" "$4" 1>&2
 }
@@ -40,19 +41,20 @@ fi
 _success "Welcome to Breakroom, the Zencode debugger"
 
 bconf=breakroom.conf
-if ! [ -r $bconf ]; then
-	_message "Configuration not found, starting new"
+_clearconf() {
 	cat <<EOF > $bconf
 # running breakroom in `pwd`
 script=0
-conf=""
+conf=0
 keys=0
 data=0
 extra=0
 break=0
 EOF
-else
-	cat $bconf | grep -v '=0$'
+}
+if ! [ -r $bconf ]; then
+	_message "Configuration not found, starting new"
+	_clearconf
 fi
 
 _setconf() {
@@ -75,17 +77,75 @@ _setjson() {
 	fi
 }
 
+if [ -r "${1}" ]; then
+	_setconf script ${1}
+	[ -r "${2}" ] && _setconf keys "${2}"
+	[ -r "${3}" ] && _setconf data "${3}"
+	[ -r "${4}" ] && _setconf extra "${4}"
+fi
+if [ "$1" = "-h" ]; then
+	_message "Command synopsis:"
+	_message "  breakroom [ ⚡zencode ] [ 🔡data ] [ 🔢keys ] [ 🔣extra ]"
+	_message "Interactive console usage commands:"
+	_message " run   ▶️ execute the current zencode configuration"
+	_message " list  📃 show the current zencode script and breakpoints"
+	_message " clear 🧹 reset all the breakroom configuration"
+	_message " trace 🧭 show the backtrace of current execution"
+	_message " heap  💾 show the HEAP of current execution"
+	_message " codec 🗃️ show the CODEC of Given scope execution"
+	_message " script [file] ⚡ get/set the zencode script file"
+	_message " data   [file] 🔡 get/set the data JSON input file"
+	_message " keys   [file] 🔢 get/set the keys JSON input file"
+	_message " extra  [file] 🔣 get/set the extra JSON input file"
+	_message " conf [string] 🔤 get/set the zenroom conf string"
+	_message " break [int]   🚫 set a breakpoint at line number"
+	exit 0
+fi
+
+# Show current configuration
+cat $bconf | grep -v '=0$'
+
+_getJ64() {
+	what="$1"
+	if ! [ -r breakroom.exec.stderr ]; then
+		_error "Stderr execution log not found"
+	else
+		_message "$what:"
+		awk '/J64 '"$what"':/ {print(substr($3,1,length($3)-2))}' \
+			breakroom.exec.stderr | base64 -d | jq .
+	fi
+}
+_getscript() {
+	if ! [ -r ${script} ]; then
+		_error "Script file not found: $script"; continue
+	fi
+	if ! [ $break ]; then
+		cat -n $script
+	else
+		cat -n $script | awk '
+{ if($1=="'"$break"'") printf "->%s\n",$0; else print $0 }'
+	fi
+}
+
 _execute() {
 	command -v zencode-exec
 	if [ $? != 0 ]; then
 		_error "zencode-exec not found in PATH"; return
 	fi
 	. ./$bconf
-	if [ "$1" != "" ]; then	conf="$conf,$1"; fi
+	xconf=""
+	if [ "$conf" != "0" ]; then xconf="$conf"; fi
+	if [ "$1" != "" ]; then	xconf="$xconf,$1"; fi
 	# create zencode-exec execution input
 	bexec=breakroom.exec
-	echo "${conf}" > $bexec
-	cat "$script" | base64 -w0 >> $bexec
+	echo "${xconf}" > $bexec
+	bscript=`mktemp`
+	cat $script > $bscript
+	if ! [ $break = 0 ]; then
+		head -n $break $script > $bscript
+		echo "and break" >> $bscript
+	fi
+	cat "$bscript" | base64 -w0 >> $bexec
 	echo >> $bexec
 	if [ -r "$keys" ]; then cat "$keys" | base64 -w0 >> $bexec; fi
 	echo >> $bexec
@@ -102,8 +162,7 @@ _execute() {
 	else
 		cat breakroom.exec.stderr | grep -v "^\"J64"
 		_error "Failed execution"
-		awk '/J64 TRACE:/ {print(substr($3,1,length($3)-2))}' \
-			breakroom.exec.stderr | base64 -d | jq .
+		_getJ64 "TRACE"
 	fi
 }
 
@@ -124,13 +183,7 @@ while true; do
 		# GET
 		case "$bcmd" in
 			script|list)
-				if ! [ -r ${script} ]; then
-					_error "Script file not found: $script"; continue
-				fi
-				if ! [ $break ]; then cat -n $script
-				else cat -n $script | awk '
-{ if($1=="'"$break"'") printf "->%s\n",$0; else print $0 }'
-				fi ;;
+				_getscript ;;
 			keys)
 				if ! [ -r ${keys} ]; then
 					_error "Keys file not found: $keys"; continue
@@ -149,22 +202,16 @@ while true; do
 			conf)
 				cat $bconf ;;
 			clear)
-				_setconf "break" 0 ;;
+				_clearconf
+				# _setconf "break" 0
+				;;
 			run)
 				_execute ;;
-			trace)
-				if ! [ -r breakroom.exec.stderr ]; then
-					_error "Execution stderr not found, run first"; continue
-				fi
-				awk '/J64 TRACE:/ {print(substr($3,1,length($3)-2))}' \
-					breakroom.exec.stderr | base64 -d | jq .
+			trace|bt)
+				_getJ64 TRACE
 				;;
 			heap)
-				if ! [ -r breakroom.exec.stderr ]; then
-					_error "Execution stderr not found, run first"; continue
-				fi
-				awk '/J64 HEAP:/ {print(substr($3,1,length($3)-2))}' \
-					breakroom.exec.stderr | base64 -d | jq .
+				_getJ64 HEAP
 				;;
 			codec|schema|given)
 				_execute "scope=given"
@@ -196,11 +243,12 @@ while true; do
 			conf)
 				_setconf "$bcmd" "$bval" ;;
 			"break")
-				bval=`echo $bline | cut -d' ' -f2`
-				if _isnum $bval; then _setconf "$bcmd" "$bval"
+				if _isnum $bval; then
+					_setconf "$bcmd" "$bval"
+					break="$bval"
 				else _error "Invalid Break line number: $bval"
-				fi ;;
-
+				fi
+				_getscript ;;
 		esac
 	fi # end GET/SET
 done

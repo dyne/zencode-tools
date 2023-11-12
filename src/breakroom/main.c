@@ -30,8 +30,6 @@
 
 #define HISTFILE "breakroom_history.txt"
 
-extern void load_file(char *dst, FILE *fd);
-
 int breakpoint = 0;
 
 char script[MAX_ZENCODE];
@@ -123,7 +121,7 @@ int main(int argc, char **argv) {
 	CMD("clear");
 	SETINT("break");
 	CMD("conf");
-	CMD("trace");
+	CMD("trace"); CMD("bt");
 	CMD("heap");
 	CMD("codec"); CMD("schema"); CMD("given");
 	fprintf(stdout,"Unknown command: %s\n", line);

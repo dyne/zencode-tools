@@ -45,7 +45,7 @@ if ! [ -r $bconf ]; then
 	cat <<EOF > $bconf
 # running breakroom in `pwd`
 script=0
-conf=0
+conf=""
 keys=0
 data=0
 extra=0
@@ -80,9 +80,11 @@ _execute() {
 	if [ $? != 0 ]; then
 		_error "zencode-exec not found in PATH"; return
 	fi
+	. ./$bconf
+	if [ "$1" != "" ]; then	conf="$conf,$1"; fi
 	# create zencode-exec execution input
 	bexec=breakroom.exec
-	echo "${conf},$1" > $bexec
+	echo "${conf}" > $bexec
 	cat "$script" | base64 -w0 >> $bexec
 	echo >> $bexec
 	if [ -r "$keys" ]; then cat "$keys" | base64 -w0 >> $bexec; fi
@@ -97,6 +99,11 @@ _execute() {
 	if [ $? = 0 ]; then
 		cat breakroom.exec.stdout | jq .
 		_success "Execution succesful"
+	else
+		cat breakroom.exec.stderr | grep -v "^\"J64"
+		_error "Failed execution"
+		awk '/J64 TRACE:/ {print(substr($3,1,length($3)-2))}' \
+			breakroom.exec.stderr | base64 -d | jq .
 	fi
 }
 

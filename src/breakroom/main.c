@@ -124,6 +124,8 @@ int main(int argc, char **argv) {
 	CMD("trace"); CMD("bt");
 	CMD("heap");
 	CMD("codec"); CMD("schema"); CMD("given");
+	CMD("auto");
+	CMD("onfail");
 	fprintf(stdout,"Unknown command: %s\n", line);
 	free(line);
   }

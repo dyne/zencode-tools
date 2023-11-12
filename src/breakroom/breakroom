@@ -50,6 +50,7 @@ keys=0
 data=0
 extra=0
 break=0
+onfail="trace"
 EOF
 }
 if ! [ -r $bconf ]; then
@@ -93,6 +94,7 @@ if [ "$1" = "-h" ]; then
 	_message " trace 🧭 show the backtrace of current execution"
 	_message " heap  💾 show the HEAP of current execution"
 	_message " codec 🗃️ show the CODEC of Given scope execution"
+	_message " auto  ♻️  onitor zencode and re-run on modifications"
 	_message " script [file] ⚡ get/set the zencode script file"
 	_message " data   [file] 🔡 get/set the data JSON input file"
 	_message " keys   [file] 🔢 get/set the keys JSON input file"
@@ -159,12 +161,19 @@ _execute() {
 	if [ $? = 0 ]; then
 		cat breakroom.exec.stdout | jq .
 		_success "Execution succesful"
+		return 0
 	else
 		cat breakroom.exec.stderr | grep -v "^\"J64"
 		_error "Failed execution"
 		_getJ64 "TRACE"
+		return 1
 	fi
 }
+
+if [ "$1" = "run" ]; then
+	_execute
+	exit $?
+fi
 
 tcmd=`mktemp`
 while true; do
@@ -215,6 +224,23 @@ while true; do
 				;;
 			codec|schema|given)
 				_execute "scope=given"
+				;;
+			auto)
+				if ! command -v inotifywait; then
+					_error "Cannot find inotify-tools for auto mode"
+					continue
+				fi
+				tscript="$script"; [ $tscript = 0 ] && tscript=""
+				tdata="$data"; [ $tdata = 0 ] && tdata=""
+				tkeys="$keys"; [ $tkeys = 0 ] && tkeys=""
+				textra="$extra"; [ $textra = 0 ] && textra=""
+				while true; do
+					_success "AUTO mode: autorun on zencode changes"
+					inotifywait -q \
+						-e modify \
+						"${tscript}" "${tdata}" "${tkeys}" "${textra}"
+					_execute
+				done
 				;;
 		esac
 	else

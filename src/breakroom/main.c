@@ -59,49 +59,36 @@ bool progmatch(const char *buf, const char *word) {
   return(match);
 }
 
+#define CMPL(name) if(progmatch(buf, name)) bestlineAddCompletion(lc, name)
+
 void completion(const char *buf, bestlineCompletions *lc) {
-  if( progmatch(buf, "help") )   bestlineAddCompletion(lc, "help");
-  if( progmatch(buf, "load") )   bestlineAddCompletion(lc, "load");
-  if( progmatch(buf, "break") )  bestlineAddCompletion(lc, "break");
-  if( progmatch(buf, "heap") )   bestlineAddCompletion(lc, "heap");
-  if( progmatch(buf, "trace") )  bestlineAddCompletion(lc, "trace");
-  if( progmatch(buf, "source") ) bestlineAddCompletion(lc, "source");
+  CMPL("run");
+  CMPL("list");
+  CMPL("script");
+  CMPL("keys");
+  CMPL("data");
+  CMPL("extra");
+  CMPL("break");
+  CMPL("clear");
+  CMPL("conf");
 }
 
 char *hints(const char *buf, const char **ansi1, const char **ansi2) {
-  if(buf[2] != '\0') return "";
-  if(!strcmp(buf,"/help")) return "";
-  if(!strcmp(buf,"/break")) return " line number";
-
-    if (!strcmp(buf,"When")) {
-        *ansi1 = "\033[35m"; /* magenta foreground */
-        *ansi2 = "\033[39m"; /* reset foreground */
-        return " I create ";
-    }
-
-    if (!strcmp(buf,"When I create")) {
-        *ansi1 = "\033[35m"; /* magenta foreground */
-        *ansi2 = "\033[39m"; /* reset foreground */
-        return " keyring | random | public key ... ";
-    }
-
     if (buf[0] == '\0') {
         *ansi1 = "\033[35m"; /* magenta foreground */
         *ansi2 = "\033[39m"; /* reset foreground */
-        return " help | list | break | clear | run | heap | trace | conf | script | data | keys | extra";
+        return " run | script | keys | data | extra | break | clear | conf";
     }
-
     return NULL;
 }
 
 void set(char *key, char *value) { // set a key/value pair in breakroom conf
   fprintf(stderr, "%s %s\n", key, value);
-  // fprintf(stdout, "set %s %s\n", key, value);
   fflush(stderr);
 }
-#define LOAD(cmd) if(!strcmp(tok,cmd)) { tok=strtok(NULL, " "); fd=fopen(tok, "rb"); if(!fd) { fprintf(stdout, "%s\n",strerror(errno)); free(line); continue; }; set(cmd, tok); exitcode=0; break; }
+#define CMD(cmd) if(!strcmp(tok,cmd)) { tok=strtok(NULL, " "); set(cmd, tok); exitcode=0; break; }
 #define SETINT(cmd) if(!strcmp(tok,cmd)) { tok=strtok(NULL, " "); bool ok=true; int l=strlen(tok); for(int i=0;i<l;i++) { if(!isdigit(tok[i])) ok=false; } if(!ok) { fprintf(stdout, "Not an integer: %s\n",tok); free(line); continue; }; set(cmd, tok); exitcode=0; break; }
-
+#define SETCONF(cmd) if(!strcmp(tok,cmd)) { tok=strtok(NULL, " "); bool ok=true; int l=strlen(tok); for(int i=0;i<l;i++) { if(! (isalnum(tok[i])||tok[i]==','||tok[i]=='='||tok[i]==' ')) ok=false; } if(!ok) { fprintf(stdout, "Invalid configuration string: %s\n",tok); free(line); continue; }; set(cmd, tok); exitcode=0; break; }
 
 int main(int argc, char **argv) {
   char *line = NULL;
@@ -127,11 +114,15 @@ int main(int argc, char **argv) {
   while((line = bestlineWithHistory("breakroom> ", HISTFILE)) != NULL) {
 	tok = strtok(line, " ");
 	if(!tok) continue;
-	LOAD("script");
-	LOAD("keys");
-	LOAD("data");
-	LOAD("extra");
+	CMD("run");
+	CMD("list");
+	CMD("script");
+	CMD("keys");
+	CMD("data");
+	CMD("extra");
+	CMD("clear");
 	SETINT("break");
+	SETCONF("conf");
 	fprintf(stdout,"Unknown command: %s\n", line);
 	free(line);
   }

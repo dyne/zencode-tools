@@ -1,0 +1,152 @@
+#!/bin/bash
+
+# Breakroom main script
+
+exitcode=0
+_success() {
+	echo "[*] " "$1" "$2" "$3" "$4" 1>&2
+}
+_message() {
+	echo " .  " "$1" "$2" "$3" "$4" 1>&2
+}
+_warning() {
+	echo "[W] " "$1" "$2" "$3" "$4" 1>&2
+}
+_verbose() {
+	echo "[D] " "$1" "$2" "$3" "$4" 1>&2
+}
+_error() {
+	echo "[!] " "$1" "$2" "$3" "$4" 1>&2
+	exitcode=1
+}
+_failure() {
+	echo "[!!] " "$1" "$2" "$3" "$4" 1>&2
+	exitcode=1
+	exit 1
+}
+
+_isnum() {
+	case $1 in
+		''|*[!0-9]*) return 1 ;;
+		*) return 0 ;;
+	esac
+}
+
+bread=./breakroom-read
+if ! [ -r $bread ]; then
+	_failure "internal executable ./breakroom-read not found"
+fi
+
+_success "Welcome to Breakroom, the Zencode debugger"
+
+bconf=breakroom.conf
+if ! [ -r $bconf ]; then
+	_message "Configuration not found, starting new"
+	cat <<EOF > $bconf
+# running breakroom in `pwd`
+script=0
+conf=0
+keys=0
+data=0
+extra=0
+break=0
+EOF
+else
+	cat $bconf | grep -v '=0$'
+fi
+
+_setconf() {
+	k="$1"
+	v="$2"
+	_message "set" "$k = $v"
+	sed -i 's/^'"$k"'.*/'"$k=\"$v\""'/' $bconf
+}
+_setjson() {
+	key="$1"
+	val="$2"
+	if ! [ -r "$val" ]; then
+		_error "JSON file not found: $val"
+		return; fi
+	cat $val | jq . 1>/dev/null
+	if ! [ $? = 0 ]; then
+		_error "Invalid JSON format for ${name}"
+	else
+		_setconf "$key" "$val"
+	fi
+}
+
+tcmd=`mktemp`
+while true; do
+	# read command from prompt
+	$bread 2> $tcmd
+	if [ $? = 1 ]; then
+		_message "Exit breakroom"
+		break; fi
+	bline=`cat $tcmd`
+	if [ "$bline" = "" ]; then continue; fi
+	bcmd=`echo $bline | cut -d' ' -f1`
+	bval=`echo $bline | cut -d' ' -f2`
+	# load configuration
+	. ./$bconf
+	if [ "$bval" = "(null)" ]; then
+		# GET
+		case "$bcmd" in
+			script|list)
+				if ! [ -r ${script} ]; then
+					_error "Script file not found: $script"; continue
+				fi
+				if ! [ $break ]; then cat -n $script
+				else cat -n $script | awk '
+{ if($1=="'"$break"'") printf "->%s\n",$0; else print $0 }'
+				fi ;;
+			keys)
+				if ! [ -r ${keys} ]; then
+					_error "Keys file not found: $keys"; continue
+				fi
+				cat ${keys} | jq . ;;
+			data)
+				if ! [ -r ${data} ]; then
+					_error "Data file not found: $data"; continue
+				fi
+				cat ${data} | jq . ;;
+			extra)
+				if ! [ -r ${extra} ]; then
+					_error "Extra file not found: $extra"; continue
+				fi
+				cat ${extra} | jq . ;;
+			clear)
+				_setconf "break" "0" ;;
+		esac
+	else
+		# SET
+		case "$bcmd" in
+			script)
+				if ! [ -r ${bval} ]; then
+					_error "Script file not found: $bval"; continue
+				fi
+				_setconf "$bcmd" "$bval" ;;
+			keys)
+				if ! [ -r ${bval} ]; then
+					_error "Keys file not found: $bval"; continue
+				fi
+				_setjson "keys" "$bval" ;;
+			data)
+				if ! [ -r ${bval} ]; then
+					_error "Data file not found: $bval"; continue
+				fi
+				_setjson "data" "$bval" ;;
+			extra)
+				if ! [ -r ${bval} ]; then
+					_error "Extra file not found: $bval"; continue
+				fi
+				_setjson "extra" "$bval" ;;
+			"break")
+				bval=`echo $bline | cut -d' ' -f2`
+				if _isnum $bval; then _setconf "$bcmd" "$bval"
+				else _error "Invalid Break line number: $bval"
+				fi ;;
+		esac
+	fi # end GET/SET
+done
+
+rm -f $tcmd

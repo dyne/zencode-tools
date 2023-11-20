@@ -34,4 +34,4 @@ install:
 	-install breakroom breakroom-read ${PREFIX}/bin
 
 clean:
-	rm -f zendebug zenexplorer restroom-test
+	rm -f zendebug zenexplorer restroom-test breakroom breakroom-read src/breakroom/breakroom-read

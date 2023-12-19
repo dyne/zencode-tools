@@ -27,6 +27,10 @@ Next we will need to be able to set breakpoints in zencode lines (`textarea.Prom
 
 Then Zendebug will have keys for step or next and run to restart: every step zenroom will be re-executed so code can change during a debug session without problems.
 
+## Breakroom
+
+Zenroom debugger: place breakpoints in Zenroom to read the memory state.    
+
 # License
 
 Software Tools to work with [Zenroom](https://dev.zenroom.org)

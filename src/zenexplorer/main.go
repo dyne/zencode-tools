@@ -133,6 +133,24 @@ func createKeyValueList(z ZenStatements) []list.Item {
 			})
 		}
 	}
+	for k, v := range z.If {
+		for i := 0; i < len(v); i++ {
+			var scenario = ""
+			if k != "default" {
+				scenario = k
+			}
+			statements = append(statements, ZencodeStatement {
+				scenario: scenario,
+				statement: "If I " + v[i],
+			})
+		}
+	}
+	for i := 0; i < len(z.Foreach); i++ {
+		statements = append(statements, ZencodeStatement {
+			scenario: "",
+			statement: "Foreach " + z.Foreach[i],
+		})
+	}
 	for i := 0; i < len(z.Then); i++ {
 		statements = append(statements, ZencodeStatement {
 			scenario: "",

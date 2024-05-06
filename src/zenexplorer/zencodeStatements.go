@@ -28,10 +28,12 @@ import (
 )
 
 type ZenStatements struct {
-	Given []string            `json:"given"`
-	When  map[string][]string `json:"when"`
-	Then  []string            `json:"then"`
-	mtx   *sync.Mutex
+	Given   []string            `json:"given"`
+	When  	map[string][]string `json:"when"`
+	If    	map[string][]string `json:"if"`
+	Foreach []string            `json:"foreach"`
+	Then  	[]string            `json:"then"`
+	mtx   	*sync.Mutex
 }
 
 //go:embed load_statements.lua
@@ -71,6 +73,9 @@ func (z *ZenStatements) count() int {
 	for _, v := range z.When {
 		count = count + len(v)
 	}
-	return count + len(z.Given) + len(z.Then)
+	for _, v := range z.If {
+		count = count + len(v)
+	}
+	return count + len(z.Given) + len(z.Then) + len(z.Foreach)
 }
 

@@ -14,11 +14,11 @@ jobs:
       release: ${{ steps.tag_release.outputs.release }}
       version: ${{ steps.tag_release.outputs.version }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 16.x
+          node-version: 20.x
       - run: yarn
       - name: Tag release
         id: tag_release
@@ -39,10 +39,10 @@ jobs:
     if: ${{ needs.semantic-release.outputs.release == 'True' }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
+        uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
       - name: Upload release docs artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: documentation
           path: |
@@ -53,7 +53,7 @@ jobs:
       - name: Build
         run: make
       - name: Upload artifact linux-amd64
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: release-bin-linux-amd64
           path: |

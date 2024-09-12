@@ -35,6 +35,7 @@ local SCENARIOS = {
   "qp",
   "random",
   "reflow",
+  "rsa",
   "schnorr",
   "sd_jwt",
   "secshare",

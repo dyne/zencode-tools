@@ -35,7 +35,10 @@ _isnum() {
 
 bread=./breakroom-read
 if ! [ -r $bread ]; then
-	_failure "internal executable ./breakroom-read not found"
+	bread=`command -v breakroom-read`
+	if ! [ -r $bread ]; then
+		_failure "internal executable ./breakroom-read not found"
+    fi
 fi
 
 _success "Welcome to Breakroom, the Zencode debugger"
